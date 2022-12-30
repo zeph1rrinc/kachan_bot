@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        run: docker build -t ${{ github.repository }}:$(cat version.txt) .
+
+      - name: Check images
+        run: docker images | grep $(cat version.txt)
+
+      - name: Log in docker hub
+        run: docker login -u ${{ github.repository_owner }} -p ${{secrets.DOCKER_HUB_PASS}}
+
+      - name: Push image
+        run: docker push ${{ github.repository }}:$(cat version.txt)
