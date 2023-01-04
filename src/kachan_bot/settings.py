@@ -4,6 +4,7 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
     database_url: str = 'sqlite:///./database.sqlite3'
     bot_token: str = ''
+    admin_chats: str = ''
 
 
 settings = Settings(

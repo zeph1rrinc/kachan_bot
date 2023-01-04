@@ -10,14 +10,17 @@ engine = create_engine(
 
 Session = sessionmaker(
     engine,
-    autocommit=False,
-    autoflush=False
+    autocommit=True,
+    autoflush=True,
+    expire_on_commit=False
 )
 
 
-def get_session():
-    session = Session()
-    try:
-        yield session
-    finally:
+def use_session(func):
+    def _wrapper(*args, **kwargs):
+        session = Session()
+        result = func(*args, **kwargs, session=session)
         session.close()
+        return result
+
+    return _wrapper
