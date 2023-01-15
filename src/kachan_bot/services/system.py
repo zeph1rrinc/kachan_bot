@@ -17,7 +17,7 @@ def check_admin(func):
                 is_admin = True
         if not is_admin:
             raise NotAdminError(chat_id=message.from_user.id, message="Недостаточно прав для выполнения этого действия")
-        func(message)
+        func(message, *args, **kwargs)
 
     return _wrapper
 

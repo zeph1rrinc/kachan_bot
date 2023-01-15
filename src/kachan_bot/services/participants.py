@@ -1,5 +1,7 @@
 from loguru import logger
 from sqlalchemy import or_
+from telebot import TeleBot
+from telebot.types import ReplyKeyboardRemove
 
 from .. import (
     tables,
@@ -14,9 +16,12 @@ def get_all(session) -> list:
 
 
 @use_session
-def create(session: Session, name: str, username: str = ''):
+def create(session: Session, name: str, username: str = '', id: int = None):
     try:
-        participant = tables.Participant(name=name, username=username)
+        data = {"name": name, "username": username}
+        if id:
+            data["id"] = id
+        participant = tables.Participant(**data)
         session.begin()
         session.add(participant)
         session.commit()
@@ -58,11 +63,17 @@ def reset_rating(session: Session):
     session.commit()
     return True
 
+
 def _get(session: Session, name: str, chat_id: int):
     participant = (
         session
             .query(tables.Participant)
-            .filter(or_(tables.Participant.name == name, tables.Participant.username == name))
+            .filter(
+            or_(
+                tables.Participant.name == name,
+                tables.Participant.username == name,
+                tables.Participant.id == chat_id
+            ))
             .first()
     )
     if not participant:
@@ -78,3 +89,26 @@ def _get_many(session):
             .all()
     )
     return participants
+
+
+def register_student(message, bot: TeleBot):
+    chat_id = message.from_user.id
+    empty_keyboard = ReplyKeyboardRemove()
+    match message.text.lower():
+        case "нет":
+            bot.send_message(chat_id, "Окей!", reply_markup=empty_keyboard)
+        case "да":
+            data = {
+                "name": message.from_user.first_name,
+                "username": message.from_user.username,
+                "id": chat_id
+            }
+            if message.from_user.last_name:
+                data["name"] += f" {message.from_user.last_name}"
+            participant = create(**data)
+            if not participant:
+                raise exceptions.BaseBotError(chat_id=chat_id, message="Какая-то ошибка")
+            bot.send_message(chat_id, "Ты успешно зарегистрирован!", reply_markup=empty_keyboard)
+        case _:
+            msg = bot.send_message(chat_id, "Не понял. Ты студент?")
+            bot.register_next_step_handler(msg, register_student, bot)
