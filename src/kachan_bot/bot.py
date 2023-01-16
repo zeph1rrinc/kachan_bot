@@ -2,7 +2,7 @@ from telebot import TeleBot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 from .settings import settings
-from .services import system, participants, tests
+from .services import system, participants, questions
 
 bot = TeleBot(settings.bot_token)
 
@@ -58,7 +58,7 @@ def delete_participant(message):
 def update_rating(message):
     *name, rating = message.text.split(' ')[1:]
     name = ' '.join(name)
-    participant = participants.set_rating(name=name, rating=rating, chat_id=message.from_user.id)
+    participant = participants.set_rating(name=name, rating=rating)
     bot.send_message(message.from_user.id, f"Рейтинг участника {participant.name} успешно обновлен!")
 
 
@@ -82,4 +82,13 @@ def clear_participants(message):
 @bot.message_handler(commands=['test'])
 @system.logging
 def start_test(message):
-    tests.start_question(user_id=message.from_user.id, bot=bot)
+    questions.start_question(user_id=message.from_user.id, bot=bot)
+
+
+@bot.message_handler(content_types=['document'])
+@system.check_admin
+@system.logging
+def create_questions(message):
+    file_info = bot.get_file(message.document.file_id)
+    file_text = bot.download_file(file_info.file_path).decode('utf-8')
+    questions.parse_file(file=file_text, bot=bot, chat_id=message.from_user.id)

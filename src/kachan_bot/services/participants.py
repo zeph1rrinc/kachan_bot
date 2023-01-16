@@ -46,7 +46,7 @@ def delete(session: Session, name: str, chat_id: int):
 
 
 @use_session
-def set_rating(session: Session, name: str, rating: int, chat_id: int):
+def set_rating(session: Session, name: str, rating: int, chat_id: int = 0):
     participant = _get(session, name, chat_id)
     session.begin()
     setattr(participant, "rating", rating)

@@ -33,7 +33,7 @@ def logging(func):
             "content_type": message.content_type,
             "text": message.text
         }
-        logger.debug(f"Received new message - {dumps(data, ensure_ascii=False, indent=4)}")
+        logger.debug(f"Received new message - {dumps(data, ensure_ascii=False)}")
         func(message, *args, **kwargs)
 
     return _wrapper

@@ -10,3 +10,11 @@ class NonExistentParticipantError(BaseBotError):
 
 class NotAdminError(BaseBotError):
     pass
+
+
+class NotEnoughQuestionsError(BaseBotError):
+    pass
+
+
+class CouldNotCreateQuestions(BaseBotError):
+    pass
