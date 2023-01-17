@@ -3,3 +3,4 @@ pydantic==1.10.3
 python-dotenv==0.21.0
 sqlalchemy==1.4.45
 loguru==0.6.0
+alembic==1.9.1

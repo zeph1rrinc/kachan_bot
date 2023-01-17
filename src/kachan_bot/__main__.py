@@ -1,9 +1,10 @@
 from sys import argv
+from telebot.types import ReplyKeyboardRemove
 
 from .bot import bot
 from .database import engine, Session
 from .tables import Base, Participant
-from .exceptions import NotAdminError, NonExistentParticipantError
+from .exceptions import NotAdminError, NonExistentParticipantError, BaseBotError, CouldNotCreateQuestions
 
 if __name__ == "__main__":
     if len(argv) > 1:
@@ -23,9 +24,8 @@ if __name__ == "__main__":
                 session.close()
                 exit(0)
     while True:
+        empty_keyboard = ReplyKeyboardRemove()
         try:
             bot.polling(none_stop=True, interval=0)
-        except NotAdminError as _ex:
-            bot.send_message(_ex.chat_id, _ex)
-        except NonExistentParticipantError as _ex:
-            bot.send_message(_ex.chat_id, _ex)
+        except BaseBotError as _ex:
+            bot.send_message(_ex.chat_id, _ex, reply_markup=empty_keyboard)

@@ -1,7 +1,9 @@
 from telebot import TeleBot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 from .settings import settings
-from .services import system, participants
+from .services import system, participants, questions
+from . import exceptions
 
 bot = TeleBot(settings.bot_token)
 
@@ -19,7 +21,11 @@ def parse_data(message):
 @bot.message_handler(commands=['start'])
 @system.logging
 def start(message):
-    bot.send_message(message.from_user.id, 'Hello!')
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    row = [KeyboardButton("Да"), KeyboardButton("Нет")]
+    keyboard.add(*row)
+    msg = bot.send_message(message.from_user.id, 'Привет, ты студент?', reply_markup=keyboard)
+    bot.register_next_step_handler(msg, participants.register_student, bot)
 
 
 @bot.message_handler(func=lambda message: filter_command(message, "рейтинг"))
@@ -38,16 +44,6 @@ def get_participants(message):
     system.handle_get_players(message, ['name', 'username'], bot)
 
 
-@bot.message_handler(func=lambda message: filter_command(message, "создать"))
-@system.logging
-@system.check_admin
-def create_participant(message):
-    *name, username = parse_data(message)
-    participant = participants.create(name=f"{' '.join(name)}", username=username)
-    if participant:
-        bot.send_message(message.from_user.id, f"Участник {participant.name} успешно создан!")
-
-
 @bot.message_handler(func=lambda message: filter_command(message, "удалить"))
 @system.logging
 @system.check_admin
@@ -63,7 +59,7 @@ def delete_participant(message):
 def update_rating(message):
     *name, rating = message.text.split(' ')[1:]
     name = ' '.join(name)
-    participant = participants.set_rating(name=name, rating=rating, chat_id=message.from_user.id)
+    participant = participants.set_rating(name=name, rating=rating)
     bot.send_message(message.from_user.id, f"Рейтинг участника {participant.name} успешно обновлен!")
 
 
@@ -82,3 +78,26 @@ def clear_participants(message):
     for participant in participants.get_all():
         participants.delete(name=participant.name, chat_id=message.from_user.id)
     bot.send_message(message.from_user.id, "Все участники успешно удалены")
+
+
+@bot.message_handler(commands=['test'])
+@system.logging
+def start_test(message):
+    questions.start_question(user_id=message.from_user.id, bot=bot)
+
+
+@bot.message_handler(content_types=['document'])
+@system.check_admin
+@system.logging
+def create_questions(message):
+    file_info = bot.get_file(message.document.file_id)
+    if file_info.file_path.split('.')[-1] != 'txt':
+        raise exceptions.WrongFileExtensionError(chat_id=message.from_user.id, message="Неверный формат файла!")
+    file_text = bot.download_file(file_info.file_path).decode('utf-8')
+    questions.parse_file(file=file_text, bot=bot, chat_id=message.from_user.id)
+
+
+@bot.message_handler()
+@system.logging
+def default_answer(message):
+    system.default_answer(bot, message.from_user.id)

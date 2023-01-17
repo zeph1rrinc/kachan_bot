@@ -17,7 +17,7 @@ def check_admin(func):
                 is_admin = True
         if not is_admin:
             raise NotAdminError(chat_id=message.from_user.id, message="Недостаточно прав для выполнения этого действия")
-        func(message)
+        func(message, *args, **kwargs)
 
     return _wrapper
 
@@ -33,7 +33,7 @@ def logging(func):
             "content_type": message.content_type,
             "text": message.text
         }
-        logger.debug(f"Received new message - {dumps(data, ensure_ascii=False, indent=4)}")
+        logger.debug(f"Received new message - {dumps(data, ensure_ascii=False)}")
         func(message, *args, **kwargs)
 
     return _wrapper
@@ -56,3 +56,21 @@ def handle_get_players(message: Message, fields: list, bot: TeleBot):
                     answer += f" - {value}"
         answer = answer.strip() + '\n'
     bot.send_message(message.from_user.id, answer)
+
+
+def default_answer(bot: TeleBot, chat_id: int):
+    answer = """Вот доступные команды:
+Рейтинг - выводит рейтинг всех студентов
+Участники - выводит список всех студентов
+/test - начать отвечать на вопросы
+    """
+    if str(chat_id) in settings.admin_chats.split(','):
+        answer += """
+Команды администратора:
+удалить <имя> - удалить студента
+обновить <имя> <число> - установить рейтинг студента равным <число>
+сбросить рейтинг - установить рейтинг всех студентов в 0
+очистить - удалить из базы всех участников
+        """
+
+    bot.send_message(chat_id, answer)
