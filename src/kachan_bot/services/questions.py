@@ -85,7 +85,7 @@ def parse_file(session: Session, file: str, bot: TeleBot, chat_id: int):
             session.close()
             raise exceptions.CouldNotCreateQuestions(chat_id=chat_id, message="Произошла какая-то ошибка")
     session.commit()
-    bot.send_message(chat_id, "Привет!")
+    bot.send_message(chat_id, "Вопросы успешно добавлены!")
 
 
 def _create_question(session: Session, data: dict):

@@ -18,3 +18,7 @@ class NotEnoughQuestionsError(BaseBotError):
 
 class CouldNotCreateQuestions(BaseBotError):
     pass
+
+
+class WrongFileExtensionError(BaseBotError):
+    pass

@@ -56,3 +56,21 @@ def handle_get_players(message: Message, fields: list, bot: TeleBot):
                     answer += f" - {value}"
         answer = answer.strip() + '\n'
     bot.send_message(message.from_user.id, answer)
+
+
+def default_answer(bot: TeleBot, chat_id: int):
+    answer = """Вот доступные команды:
+Рейтинг - выводит рейтинг всех студентов
+Участники - выводит список всех студентов
+/test - начать отвечать на вопросы
+    """
+    if str(chat_id) in settings.admin_chats.split(','):
+        answer += """
+Команды администратора:
+удалить <имя> - удалить студента
+обновить <имя> <число> - установить рейтинг студента равным <число>
+сбросить рейтинг - установить рейтинг всех студентов в 0
+очистить - удалить из базы всех участников
+        """
+
+    bot.send_message(chat_id, answer)

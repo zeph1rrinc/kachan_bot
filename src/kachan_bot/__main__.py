@@ -27,11 +27,5 @@ if __name__ == "__main__":
         empty_keyboard = ReplyKeyboardRemove()
         try:
             bot.polling(none_stop=True, interval=0)
-        except NotAdminError as _ex:
-            bot.send_message(_ex.chat_id, _ex, reply_markup=empty_keyboard)
-        except NonExistentParticipantError as _ex:
-            bot.send_message(_ex.chat_id, _ex, reply_markup=empty_keyboard)
-        except CouldNotCreateQuestions as _ex:
-            bot.send_message(_ex.chat_id, _ex, reply_markup=empty_keyboard)
         except BaseBotError as _ex:
             bot.send_message(_ex.chat_id, _ex, reply_markup=empty_keyboard)

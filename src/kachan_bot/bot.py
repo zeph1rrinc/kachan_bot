@@ -3,6 +3,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 from .settings import settings
 from .services import system, participants, questions
+from . import exceptions
 
 bot = TeleBot(settings.bot_token)
 
@@ -90,5 +91,13 @@ def start_test(message):
 @system.logging
 def create_questions(message):
     file_info = bot.get_file(message.document.file_id)
+    if file_info.file_path.split('.')[-1] != 'txt':
+        raise exceptions.WrongFileExtensionError(chat_id=message.from_user.id, message="Неверный формат файла!")
     file_text = bot.download_file(file_info.file_path).decode('utf-8')
     questions.parse_file(file=file_text, bot=bot, chat_id=message.from_user.id)
+
+
+@bot.message_handler()
+@system.logging
+def default_answer(message):
+    system.default_answer(bot, message.from_user.id)
