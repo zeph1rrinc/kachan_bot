@@ -71,9 +71,15 @@ def handle_answer(message, bot: TeleBot):
 def parse_file(session: Session, file: str, bot: TeleBot, chat_id: int):
     lines = file.split('\n')
     session.begin()
+    i = 0
     for line in lines:
-        question, answers = line.split(':')
-        right_answer, wrong_answer1, wrong_answer2, wrong_answer3 = answers.strip().split('/')
+        if len(line) < 1:
+            continue
+        try:
+            question, answers = line.split(':')
+            right_answer, wrong_answer1, wrong_answer2, wrong_answer3 = answers.strip().split('/')
+        except Exception as _ex:
+            raise exceptions.CouldNotCreateQuestions(chat_id=chat_id, message=f"Проблема на строке {i+1}: {_ex}")
         data = {
             "question": question,
             "right_answer": right_answer,
@@ -84,6 +90,7 @@ def parse_file(session: Session, file: str, bot: TeleBot, chat_id: int):
         if not _create_question(session=session, data=data):
             session.close()
             raise exceptions.CouldNotCreateQuestions(chat_id=chat_id, message="Произошла какая-то ошибка")
+        i += 1
     session.commit()
     bot.send_message(chat_id, "Вопросы успешно добавлены!")
 
