@@ -23,7 +23,7 @@ from kachan_bot.tables import Base
 target_metadata = Base.metadata
 #target_metadata = None
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 print(dotenv_path)
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
